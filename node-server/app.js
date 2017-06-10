@@ -2,14 +2,21 @@ var express = require('express');
 var app = express();
 var request = require('request');
 var fs = require('fs');
+var bodyparser = require('body-parser');
+var approvalCode = "";
 app.get('/', function (req, res) {
   res.send('Hello World!');
 });
-app.get('/visa', function(req, res) {
-	var data = JSON.stringify({
+app.use(bodyparser.json());
+app.post('/visa', function(req, res) {
+  var CCNumber = req.body.cc;
+  var amount = req.body.amount;
+  var expires = req.body.expires;
+  console.log(CCNumber + "     " + amount);
+  var data = JSON.stringify({
 "acquirerCountryCode": "840",
 "acquiringBin": "408999",
-"amount": "124.02",
+"amount": amount,
 "businessApplicationId": "AA",
 "cardAcceptor": {
 "address": {
@@ -24,14 +31,15 @@ app.get('/visa', function(req, res) {
 },
 "cavv": "0700100038238906000013405823891061668252",
 "foreignExchangeFeeTransaction": "11.99",
-"localTransactionDateTime": "2017-06-10T13:51:54",
+"localTransactionDateTime": "2017-06-10T15:51:45",
 "retrievalReferenceNumber": "330000550000",
-"senderCardExpiryDate": "2015-10",
+"senderCardExpiryDate": expires,
 "senderCurrencyCode": "USD",
-"senderPrimaryAccountNumber": "4895142232120006",
+"senderPrimaryAccountNumber": CCNumber,
 "surcharge": "11.99",
 "systemsTraceAuditNumber": "451001"
 });
+
 
 	var req = request.defaults();
 
@@ -58,8 +66,8 @@ app.get('/visa', function(req, res) {
 	      for(var item in response.headers) {
 	        console.log(item + ": " + response.headers[item]);
 	      }
-	      console.log("Body: "+ body);
-          res.json(body);
+          approvalCode = JSON.parse(response.body);
+          res.send(approvalCode.approvalCode);
 	    } else {
 	      console.log("Got error: " + error.message);
 	    }
